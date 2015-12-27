@@ -36,7 +36,17 @@ cacheSolve <- function(x, ...) {
     return(m)
   }
   data <- x$get()
-  m <- solve(data)
+  if (nrow(data) == ncol(data)){
+    m <- solve(data)
+  } else {
+    dnx <- dimnames(data)
+    if(is.null(dnx)) dnx <- vector("list", 2)
+    s <- svd(data)
+    nz <- s$d > sqrt(.Machine$double.eps) * s$d[1]
+    m <- structure(
+          if(any(nz)) s$v[, nz] %*% (t(s$u[, nz])/s$d[nz]) else data,
+          dimnames = dnx[2:1])
+  }
   x$setinverse(m)
   m
 }
